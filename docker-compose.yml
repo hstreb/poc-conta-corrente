@@ -54,3 +54,14 @@ services:
       - POSTGRES_USER=conta
       - POSTGRES_PASSWORD=conta123
       - POSTGRES_DB=conta
+
+  db-transacao:
+    image: postgres:14.5-alpine
+    network_mode: "host"
+    command: -p 25432
+    volumes:
+      - ./docker/db/transacao.sql:/docker-entrypoint-initdb.d/transacao.sql
+    environment:
+      - POSTGRES_USER=transacao
+      - POSTGRES_PASSWORD=transacao123
+      - POSTGRES_DB=transacao

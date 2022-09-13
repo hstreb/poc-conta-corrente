@@ -1,0 +1,35 @@
+server:
+  port: 8091
+spring:
+  application:
+    name: "transacoes"
+  main:
+    banner-mode: "off"
+  datasource:
+    url: jdbc:postgresql://localhost:25432/transacao
+    username: transacao
+    password: transacao123
+    driver-class-name: org.postgresql.Driver
+    validationQuery: SELECT 1
+  kafka:
+    bootstrap-servers: "localhost:9092"
+    producer:
+      retries: 1
+      properties:
+        request.timeout.ms: 5000
+        delivery.timeout.ms: 10500
+        max.block.ms: 5000
+    consumer:
+      auto-offset-reset: earliest
+management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  endpoints:
+    web:
+      base-path: /management
+      exposure:
+        include: health,prometheus
+logging:
+  level:
+    org.exemplo.transacoes: DEBUG

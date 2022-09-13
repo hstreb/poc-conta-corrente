@@ -79,9 +79,7 @@ class ContaController {
         var data = objectMapper.writeValueAsString(response);
         var result = kafkaTemplate.send("contas", response.id().toString(), data)
                 .get(11L, TimeUnit.SECONDS);
-        LOGGER.debug("Evento de Conta enviada: id={}, metadata={}}",
-                response.id(),
-                result.getRecordMetadata());
+        LOGGER.debug("Evento de Conta enviada: id={}, metadata={}}", response.id(), result.getRecordMetadata());
     }
 
     private ContaResponse map(ContaEntity conta, Set<TitularEntity> titulares) {

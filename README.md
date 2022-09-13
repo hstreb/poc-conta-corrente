@@ -16,6 +16,8 @@ O exemplo usado é uma conta de banco com transações e validação de fraude.
     - ~~criar APIs~~
     - adicionar consumidor tópico de bloqueios
   - **transacoes** - APIs REST para criação e deleção de transações financeiras
+    - ~~criar consumidor tópico contas~~
+    - cria APIs de transações
   - **saldos** - APIs REST para consulta de saldo e extrato
   - **anti-fraude** - validação das transações para bloqueio ao identificar suspeitas
     - regra simples: 3 transações em menos de 1s gera bloqueio
