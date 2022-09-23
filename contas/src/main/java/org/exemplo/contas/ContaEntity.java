@@ -17,17 +17,16 @@ class ContaEntity {
     Integer numero;
     Integer digitoVerificador;
     String estado;
-
     LocalDateTime dataCriacao;
 
     public ContaEntity() {
     }
 
-    public ContaEntity(String agencia, Integer numero, String estado, Integer digitoVerificador, LocalDateTime dataCriacao) {
-        this.agencia = agencia;
+    public ContaEntity(Integer numero) {
+        this.agencia = "0001";
         this.numero = numero;
-        this.digitoVerificador = digitoVerificador;
-        this.estado = estado;
-        this.dataCriacao = dataCriacao;
+        this.digitoVerificador = (numero + 5) % 10;
+        this.estado = "ATIVA";
+        this.dataCriacao = LocalDateTime.now();
     }
 }

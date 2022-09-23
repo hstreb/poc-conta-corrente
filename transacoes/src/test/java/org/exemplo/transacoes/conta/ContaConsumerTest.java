@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -22,25 +23,25 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class ContaConsumerTest {
 
+    private static final LocalDateTime NOW = LocalDateTime.of(LocalDate.of(2022, 1, 1), LocalTime.NOON);
+
     @Mock
     private ContaRepository contaRepository;
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper()
             .findAndRegisterModules()
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    @Spy
+    private ContaMapper contaMapper = Mappers.getMapper(ContaMapper.class);
     @InjectMocks
     private ContaConsumer contaConsumer;
 
     @Test
     void deve_consumir_mensagem_e_salvar_nova_conta_corretamente() {
         var evento = """
-                {"id":"6132176f-bed6-42ea-82d4-21631372da33","agencia":"0001","conta":"1234-4","titulares":[{"id":"642466af-fbc4-4e73-8ad6-7514c818a385","documento":"0001","nome":"Cliente"}],"estado":"ATIVA","dataCriacao":"2022-01-01T12:00:00.000000000"}
+                {"id":"6132176f-bed6-42ea-82d4-21631372da33","agencia":"0001","conta":"1234-9","titulares":[{"id":"642466af-fbc4-4e73-8ad6-7514c818a385","documento":"0001","nome":"Cliente"}],"estado":"ATIVA","dataCriacao":"2022-01-01T12:00:00.000000000"}
                 """;
-        var entity = new ContaEntity(UUID.fromString("6132176f-bed6-42ea-82d4-21631372da33"),
-                "0001",
-                "1234-4",
-                "ATIVA",
-                LocalDateTime.of(LocalDate.of(2022, 1, 1), LocalTime.NOON));
+        var entity = getContaEntity();
         given(contaRepository.findById(any()))
                 .willReturn(Optional.empty());
         given(contaRepository.save(any()))
@@ -54,11 +55,7 @@ class ContaConsumerTest {
         var evento = """
                 {"id":"0d10b122-076b-43a3-89cc-1d6ecd77632f","agencia":"0001","conta":"0001-1","titulares":[{"id":"642466af-fbc4-4e73-8ad6-7514c818a385","documento":"0001","nome":"Cliente"}],"estado":"ATIVA","dataCriacao":"2022-01-01T12:00:00.000000000"}
                 """;
-        var entity = new ContaEntity(UUID.fromString("0d10b122-076b-43a3-89cc-1d6ecd77632f"),
-                "0001",
-                "0001-1",
-                "ATIVA",
-                LocalDateTime.of(LocalDate.of(2022, 1, 1), LocalTime.NOON));
+        var entity = getContaEntity();
         given(contaRepository.findById(any()))
                 .willReturn(Optional.of(entity));
         contaConsumer.consumir(evento);
@@ -68,18 +65,11 @@ class ContaConsumerTest {
     @Test
     void deve_consumir_mensagem_e_atualizar_conta_existente() {
         var evento = """
-                {"id":"0d10b122-076b-43a3-89cc-1d6ecd77632f","agencia":"0001","conta":"0001-1","titulares":[{"id":"642466af-fbc4-4e73-8ad6-7514c818a385","documento":"0001","nome":"Cliente"}],"estado":"INATIVA","dataCriacao":"2022-01-01T12:00:00.000000000"}
+                {"id":"6132176f-bed6-42ea-82d4-21631372da33","agencia":"0001","conta":"1234-9","titulares":[{"id":"642466af-fbc4-4e73-8ad6-7514c818a385","documento":"0001","nome":"Cliente"}],"estado":"INATIVA","dataCriacao":"2022-01-01T12:00:00.000000000"}
                 """;
-        var entityExistente = new ContaEntity(UUID.fromString("0d10b122-076b-43a3-89cc-1d6ecd77632f"),
-                "0001",
-                "0001-1",
-                "ATIVA",
-                LocalDateTime.of(LocalDate.of(2022, 1, 1), LocalTime.NOON));
-        var entity = new ContaEntity(UUID.fromString("0d10b122-076b-43a3-89cc-1d6ecd77632f"),
-                "0001",
-                "0001-1",
-                "INATIVA",
-                LocalDateTime.of(LocalDate.of(2022, 1, 1), LocalTime.NOON));
+        var entityExistente = getContaEntity();
+        var entity = getContaEntity();
+        entity.setEstado("INATIVA");
         given(contaRepository.findById(any()))
                 .willReturn(Optional.of(entityExistente));
         contaConsumer.consumir(evento);
@@ -94,5 +84,15 @@ class ContaConsumerTest {
         contaConsumer.consumir(evento);
         verify(contaRepository, never()).findById(any());
         verify(contaRepository, never()).save(any());
+    }
+
+    ContaEntity getContaEntity() {
+        var entity = new ContaEntity();
+        entity.setId(UUID.fromString("6132176f-bed6-42ea-82d4-21631372da33"));
+        entity.setAgencia("0001");
+        entity.setConta("1234-9");
+        entity.setEstado("ATIVA");
+        entity.setDataCriacao(NOW);
+        return entity;
     }
 }

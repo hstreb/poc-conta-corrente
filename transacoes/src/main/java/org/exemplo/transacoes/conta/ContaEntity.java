@@ -11,22 +11,59 @@ import java.util.UUID;
 @Table(name = "conta")
 public class ContaEntity {
     @Id
-    UUID id;
+    private UUID id;
     @Version
-    Long versao;
-    String agencia;
-    String conta;
-    String estado;
-    LocalDateTime dataCriacao;
+    private Long versao;
+    private String agencia;
+    private String conta;
+    private String estado;
+    private LocalDateTime dataCriacao;
 
-    public ContaEntity() {
+    public UUID getId() {
+        return id;
     }
 
-    public ContaEntity(UUID id, String agencia, String conta, String estado, LocalDateTime dataCriacao) {
+    public void setId(UUID id) {
         this.id = id;
+    }
+
+    public Long getVersao() {
+        return versao;
+    }
+
+    public void setVersao(Long versao) {
+        this.versao = versao;
+    }
+
+    public String getAgencia() {
+        return agencia;
+    }
+
+    public void setAgencia(String agencia) {
         this.agencia = agencia;
+    }
+
+    public String getConta() {
+        return conta;
+    }
+
+    public void setConta(String conta) {
         this.conta = conta;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
         this.estado = estado;
+    }
+
+    public LocalDateTime getDataCriacao() {
+        return dataCriacao;
+    }
+
+    public void setDataCriacao(LocalDateTime dataCriacao) {
         this.dataCriacao = dataCriacao;
     }
 

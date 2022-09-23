@@ -10,6 +10,7 @@ import org.exemplo.transacoes.transacao.TransacaoController.TransacaoRequest;
 import org.exemplo.transacoes.transacao.TransacaoController.TransacaoResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -90,6 +91,9 @@ class TransacaoControllerTest {
     private ObjectMapper objectMapper = new ObjectMapper()
             .findAndRegisterModules();
 
+    @Spy
+    private TransacaoMapper transacaoMapper = Mappers.getMapper(TransacaoMapper.class);
+
     @InjectMocks
     private TransacaoController transacaoController;
 
@@ -130,22 +134,24 @@ class TransacaoControllerTest {
     }
 
     ContaEntity getContaEntity() {
-        return new ContaEntity(UUID.fromString("f29283b3-6e25-4400-8e6e-81224f97ebeb"),
-                "0001",
-                "1234-5",
-                "ATIVA",
-                NOW);
+        var entity = new ContaEntity();
+        entity.setId(UUID.fromString("f29283b3-6e25-4400-8e6e-81224f97ebeb"));
+        entity.setAgencia("0001");
+        entity.setConta("1234-5");
+        entity.setEstado("ATIVA");
+        entity.setDataCriacao(NOW);
+        return entity;
     }
 
     TransacaoEntity getTransacaoEntity() {
         var entity = new TransacaoEntity();
-        entity.id = UUID.fromString("0d10b122-076b-43a3-89cc-1d6ecd77632f");
-        entity.versao = 0L;
-        entity.conta = UUID.fromString("f29283b3-6e25-4400-8e6e-81224f97ebeb");
-        entity.tipoTransacao = CREDITO.id;
-        entity.dataTransacao = LocalDate.of(2022, 1, 1);
-        entity.valor = TEN;
-        entity.dataCriacao = NOW;
+        entity.setId(UUID.fromString("0d10b122-076b-43a3-89cc-1d6ecd77632f"));
+        entity.setVersao(0L);
+        entity.setConta(UUID.fromString("f29283b3-6e25-4400-8e6e-81224f97ebeb"));
+        entity.setTipoTransacao(CREDITO.id);
+        entity.setDataTransacao(LocalDate.of(2022, 1, 1));
+        entity.setValor(TEN);
+        entity.setDataCriacao(NOW);
         return entity;
     }
 }

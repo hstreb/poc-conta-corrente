@@ -10,6 +10,7 @@ O exemplo usado é uma conta de banco com transações e validação de fraude.
 ## TODO
 
 - ~~criar diagrama macro dos serviços~~
+  - ~~ajustar diagrama macro dos serviços~~
 - ~~criar docker-compose com as tecnologias~~
 - criar serviços
   - **contas** - APIs REST para criação, consulta e deleção de contas
@@ -17,7 +18,8 @@ O exemplo usado é uma conta de banco com transações e validação de fraude.
     - adicionar consumidor tópico de bloqueios
   - **transacoes** - APIs REST para criação e deleção de transações financeiras
     - ~~criar consumidor tópico contas~~
-    - cria APIs de transações
+    - ~~criar APIs de transações~~
+    - adicionar validações de limites
   - **saldos** - APIs REST para consulta de saldo e extrato
   - **anti-fraude** - validação das transações para bloqueio ao identificar suspeitas
     - regra simples: 3 transações em menos de 1s gera bloqueio

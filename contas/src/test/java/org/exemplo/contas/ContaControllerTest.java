@@ -85,7 +85,7 @@ class ContaControllerTest {
     private static final String ESTADO = "ATIVA";
     private static final ContaController.ContaResponse EXPERADO = new ContaController.ContaResponse(CONTA_ID,
             AGENCIA,
-            "1234-4",
+            "1234-9",
             Set.of(new ContaController.TitularResponse(TITULAR_ID, DOCUMENTO, NOME)),
             ESTADO,
             NOW);
@@ -150,14 +150,22 @@ class ContaControllerTest {
     }
 
     ContaEntity getContaEntity() {
-        var entity = new ContaEntity(AGENCIA, NUMERO, ESTADO, 4, NOW);
+        var entity = new ContaEntity();
         entity.id = CONTA_ID;
+        entity.agencia = "0001";
+        entity.numero = NUMERO;
+        entity.digitoVerificador = 9;
+        entity.estado = "ATIVA";
+        entity.dataCriacao = NOW;
         return entity;
     }
 
     TitularEntity getTitularEntity() {
-        var entity = new TitularEntity(CONTA_ID, DOCUMENTO, NOME);
+        var entity = new TitularEntity();
         entity.id = TITULAR_ID;
+        entity.conta = CONTA_ID;
+        entity.documento = DOCUMENTO;
+        entity.nome = NOME;
         return entity;
     }
 }

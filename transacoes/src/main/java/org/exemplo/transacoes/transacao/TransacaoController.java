@@ -26,12 +26,14 @@ public class TransacaoController {
     private final TransacaoRepository transacaoRepository;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
+    private final TransacaoMapper transacaoMapper;
 
-    public TransacaoController(ContaRepository contaRepository, TransacaoRepository transacaoRepository, KafkaTemplate<String, String> kafkaTemplate, ObjectMapper objectMapper) {
+    public TransacaoController(ContaRepository contaRepository, TransacaoRepository transacaoRepository, KafkaTemplate<String, String> kafkaTemplate, ObjectMapper objectMapper, TransacaoMapper transacaoMapper) {
         this.contaRepository = contaRepository;
         this.transacaoRepository = transacaoRepository;
         this.kafkaTemplate = kafkaTemplate;
         this.objectMapper = objectMapper;
+        this.transacaoMapper = transacaoMapper;
     }
 
     @PostMapping
@@ -41,23 +43,8 @@ public class TransacaoController {
         LOGGER.debug("Criar transacao: conta={}", conta);
         contaRepository.findById(conta)
                 .orElseThrow(() -> new ContaNotFoundException("Conta não encontrada!"));
-        var entity = transacaoRepository.save(new TransacaoEntity(conta,
-                request.tipoTransacao().id,
-                request.data(),
-                request.valor(),
-                request.participante() == null ? null : request.participante().banco(),
-                request.participante() == null ? null : request.participante().agencia(),
-                request.participante() == null ? null : request.participante().conta(),
-                request.descricao()));
-        var response = new TransacaoResponse(entity.id,
-                entity.conta,
-                TipoTransacaoEnum.valueOf(entity.tipoTransacao).orElse(TipoTransacaoEnum.CREDITO),
-                entity.dataTransacao,
-                entity.valor,
-                new Participante(entity.participanteBanco, entity.participanteAgencia, entity.participanteConta),
-                entity.descricao,
-                null,
-                entity.dataCriacao);
+        var entity = transacaoRepository.save(transacaoMapper.map(conta, request));
+        var response = transacaoMapper.map(entity);
         gerarEvento(response);
         return response;
     }
@@ -71,23 +58,8 @@ public class TransacaoController {
                 .orElseThrow(() -> new ContaNotFoundException("Conta não encontrada!"));
         var entity = transacaoRepository.findById(transacao)
                 .orElseThrow(() -> new ContaNotFoundException("Transação não encontrada!"));
-        var nova = new TransacaoEntity(conta,
-                entity.valor,
-                entity.participanteBanco,
-                entity.participanteAgencia,
-                entity.participanteConta,
-                transacao);
-        var estorno = transacaoRepository.save(nova);
-        var response = new TransacaoResponse(estorno.id,
-                estorno.conta,
-                TipoTransacaoEnum.valueOf(estorno.tipoTransacao).orElse(TipoTransacaoEnum.ESTORNO),
-                estorno.dataTransacao,
-                estorno.valor,
-                new Participante(estorno.participanteBanco, estorno.participanteAgencia, estorno.participanteConta),
-                estorno.descricao,
-                estorno.transacaoReferente,
-                estorno.dataCriacao);
-        gerarEvento(response);
+        var estorno = transacaoRepository.save(transacaoMapper.mapEstorno(entity));
+        gerarEvento(transacaoMapper.map(estorno));
     }
 
     @Transactional
@@ -101,7 +73,7 @@ public class TransacaoController {
     record Participante(String banco, String agencia, String conta) {
     }
 
-    record TransacaoRequest(LocalDate data, BigDecimal valor, TipoTransacaoEnum tipoTransacao,
+    record TransacaoRequest(LocalDate dataTransacao, BigDecimal valor, TipoTransacaoEnum tipoTransacao,
                             Participante participante, String descricao) {
     }
 
@@ -109,7 +81,7 @@ public class TransacaoController {
             UUID id,
             UUID conta,
             TipoTransacaoEnum tipoTransacao,
-            LocalDate data,
+            LocalDate dataTransacao,
             BigDecimal valor,
             Participante participante,
             String descricao,

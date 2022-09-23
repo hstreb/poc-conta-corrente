@@ -38,11 +38,7 @@ class ContaController {
     public ContaResponse criar(@RequestBody ContaRequest contaRequest) throws Exception {
         LOGGER.debug("Criar conta: titulares={}", contaRequest.titulares());
         var numero = contaRepository.getProximoNumeroConta();
-        var conta = contaRepository.save(new ContaEntity("0001",
-                numero,
-                "ATIVA",
-                numero % 10,
-                LocalDateTime.now()));
+        var conta = contaRepository.save(new ContaEntity(numero));
         var titulares = contaRequest.titulares.stream()
                 .map(t -> titularRepository.save(new TitularEntity(conta.id, t.documento, t.nome)))
                 .collect(Collectors.toSet());

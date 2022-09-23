@@ -13,57 +13,113 @@ import java.util.UUID;
 public class TransacaoEntity {
 
     @Id
-    UUID id;
+    private UUID id;
     @Version
-    Long versao;
-    UUID conta;
-    Integer tipoTransacao;
-    LocalDate dataTransacao;
-    BigDecimal valor;
-    String participanteBanco;
-    String participanteAgencia;
-    String participanteConta;
-    String descricao;
-    UUID transacaoReferente;
-    LocalDateTime dataCriacao;
+    private Long versao;
+    private UUID conta;
+    private Integer tipoTransacao;
+    private LocalDate dataTransacao;
+    private BigDecimal valor;
+    private String participanteBanco;
+    private String participanteAgencia;
+    private String participanteConta;
+    private String descricao;
+    private UUID transacaoReferente;
+    private LocalDateTime dataCriacao;
 
-    public TransacaoEntity() {
+    public UUID getId() {
+        return id;
     }
 
-    public TransacaoEntity(UUID conta,
-                           Integer tipoTransacao,
-                           LocalDate dataTransacao,
-                           BigDecimal valor,
-                           String participanteBanco,
-                           String participanteAgencia,
-                           String participanteConta,
-                           String descricao) {
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public Long getVersao() {
+        return versao;
+    }
+
+    public void setVersao(Long versao) {
+        this.versao = versao;
+    }
+
+    public UUID getConta() {
+        return conta;
+    }
+
+    public void setConta(UUID conta) {
         this.conta = conta;
+    }
+
+    public Integer getTipoTransacao() {
+        return tipoTransacao;
+    }
+
+    public void setTipoTransacao(Integer tipoTransacao) {
         this.tipoTransacao = tipoTransacao;
-        this.dataTransacao = dataTransacao;
-        this.valor = valor;
-        this.participanteBanco = participanteBanco;
-        this.participanteAgencia = participanteAgencia;
-        this.participanteConta = participanteConta;
-        this.descricao = descricao;
-        this.dataCriacao = LocalDateTime.now();
     }
 
-    public TransacaoEntity(UUID conta,
-                           BigDecimal valor,
-                           String participanteBanco,
-                           String participanteAgencia,
-                           String participanteConta,
-                           UUID transacaoReferente) {
-        this.conta = conta;
-        this.tipoTransacao = TipoTransacaoEnum.ESTORNO.id;
-        this.dataTransacao = LocalDate.now();
+    public LocalDate getDataTransacao() {
+        return dataTransacao;
+    }
+
+    public void setDataTransacao(LocalDate dataTransacao) {
+        this.dataTransacao = dataTransacao;
+    }
+
+    public BigDecimal getValor() {
+        return valor;
+    }
+
+    public void setValor(BigDecimal valor) {
         this.valor = valor;
+    }
+
+    public String getParticipanteBanco() {
+        return participanteBanco;
+    }
+
+    public void setParticipanteBanco(String participanteBanco) {
         this.participanteBanco = participanteBanco;
+    }
+
+    public String getParticipanteAgencia() {
+        return participanteAgencia;
+    }
+
+    public void setParticipanteAgencia(String participanteAgencia) {
         this.participanteAgencia = participanteAgencia;
+    }
+
+    public String getParticipanteConta() {
+        return participanteConta;
+    }
+
+    public void setParticipanteConta(String participanteConta) {
         this.participanteConta = participanteConta;
-        this.descricao = "Estorno transação %s".formatted(transacaoReferente);
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
+
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
+    }
+
+    public UUID getTransacaoReferente() {
+        return transacaoReferente;
+    }
+
+    public void setTransacaoReferente(UUID transacaoReferente) {
         this.transacaoReferente = transacaoReferente;
-        this.dataCriacao = LocalDateTime.now();
+    }
+
+    public LocalDateTime getDataCriacao() {
+        return dataCriacao;
+    }
+
+    public void setDataCriacao(LocalDateTime dataCriacao) {
+        this.dataCriacao = dataCriacao;
     }
 }
