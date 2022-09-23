@@ -5,6 +5,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.exemplo.transacoes.conta.ContaEntity;
+import org.exemplo.transacoes.conta.ContaNotFoundException;
 import org.exemplo.transacoes.conta.ContaRepository;
 import org.exemplo.transacoes.transacao.TransacaoController.TransacaoRequest;
 import org.exemplo.transacoes.transacao.TransacaoController.TransacaoResponse;
@@ -30,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 
 import static java.math.BigDecimal.TEN;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.exemplo.transacoes.transacao.TipoTransacaoEnum.CREDITO;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -119,6 +121,15 @@ class TransacaoControllerTest {
     }
 
     @Test
+    void nao_deve_criar_transacao_para_conta_inexistente() {
+        given(contaRepository.findById(any()))
+                .willReturn(Optional.empty());
+        assertThatThrownBy(() -> transacaoController.criar(UUID.fromString("f29283b3-6e25-4400-8e6e-81224f97ebeb"),
+                new TransacaoRequest(LocalDate.of(2022, 1, 1), TEN, CREDITO, null, null)))
+                .isInstanceOf(ContaNotFoundException.class);
+    }
+
+    @Test
     void deve_estornar_uma_transacao_corretamente() throws Exception {
         given(contaRepository.findById(any()))
                 .willReturn(Optional.of(getContaEntity()));
@@ -131,6 +142,15 @@ class TransacaoControllerTest {
         assertThatCode(() -> transacaoController.deletar(UUID.fromString("f29283b3-6e25-4400-8e6e-81224f97ebeb"),
                 UUID.fromString("0d10b122-076b-43a3-89cc-1d6ecd77632f")))
                 .doesNotThrowAnyException();
+    }
+
+    @Test
+    void nao_deve_estornar_transacao_para_conta_inexistente() {
+        given(contaRepository.findById(any()))
+                .willReturn(Optional.empty());
+        assertThatThrownBy(() -> transacaoController.deletar(UUID.fromString("f29283b3-6e25-4400-8e6e-81224f97ebeb"),
+                UUID.fromString("0d10b122-076b-43a3-89cc-1d6ecd77632f")))
+                .isInstanceOf(ContaNotFoundException.class);
     }
 
     ContaEntity getContaEntity() {

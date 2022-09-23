@@ -39,10 +39,11 @@ public class TransacaoController {
     @PostMapping
     @Transactional
     @ResponseStatus(HttpStatus.CREATED)
-    TransacaoResponse criar(@PathVariable("conta") UUID conta, @RequestBody TransacaoRequest request) throws Exception {
+    public TransacaoResponse criar(@PathVariable("conta") UUID conta, @RequestBody TransacaoRequest request) throws Exception {
         LOGGER.debug("Criar transacao: conta={}", conta);
-        contaRepository.findById(conta)
-                .orElseThrow(() -> new ContaNotFoundException("Conta não encontrada!"));
+        if (contaRepository.findById(conta).isEmpty()) {
+            throw new ContaNotFoundException("Conta não encontrada!");
+        }
         var entity = transacaoRepository.save(transacaoMapper.map(conta, request));
         var response = transacaoMapper.map(entity);
         gerarEvento(response);
@@ -52,10 +53,11 @@ public class TransacaoController {
     @DeleteMapping("/{transacao}")
     @Transactional
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    void deletar(@PathVariable("conta") UUID conta, @PathVariable("transacao") UUID transacao) throws Exception {
+    public void deletar(@PathVariable("conta") UUID conta, @PathVariable("transacao") UUID transacao) throws Exception {
         LOGGER.debug("Estornar transacao: conta={}, transacao={}", conta, transacao);
-        contaRepository.findById(conta)
-                .orElseThrow(() -> new ContaNotFoundException("Conta não encontrada!"));
+        if (contaRepository.findById(conta).isEmpty()) {
+            throw new ContaNotFoundException("Conta não encontrada!");
+        }
         var entity = transacaoRepository.findById(transacao)
                 .orElseThrow(() -> new ContaNotFoundException("Transação não encontrada!"));
         var estorno = transacaoRepository.save(transacaoMapper.mapEstorno(entity));
