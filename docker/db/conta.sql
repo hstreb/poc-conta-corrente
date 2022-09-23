@@ -1,5 +1,6 @@
 CREATE TABLE conta (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY NOT NULL,
+    versao INTEGER NOT NULL,
     agencia VARCHAR(4) NOT NULL,
     numero INTEGER NOT NULL,
     digito_verificador INTEGER NOT NULL,
@@ -12,6 +13,7 @@ CREATE SEQUENCE conta_seq_numero START 1001;
 
 CREATE TABLE titular (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY NOT NULL,
+    versao INTEGER NOT NULL,
     conta UUID NOT NULL,
     documento VARCHAR(30) NOT NULL,
     nome VARCHAR(255) NOT NULL,

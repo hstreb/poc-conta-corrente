@@ -5,10 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import javax.transaction.Transactional;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
@@ -34,7 +33,7 @@ class ContaController {
     }
 
     @PostMapping
-    @Transactional(rollbackOn = SQLException.class)
+    @Transactional(rollbackFor = Exception.class)
     @ResponseStatus(HttpStatus.CREATED)
     public ContaResponse criar(@RequestBody ContaRequest contaRequest) throws Exception {
         LOGGER.debug("Criar conta: titulares={}", contaRequest.titulares());
@@ -45,7 +44,7 @@ class ContaController {
                 numero % 10,
                 LocalDateTime.now()));
         var titulares = contaRequest.titulares.stream()
-                .map(t -> titularRepository.save(new TitularEntity(conta.getId(), t.documento, t.nome)))
+                .map(t -> titularRepository.save(new TitularEntity(conta.id, t.documento, t.nome)))
                 .collect(Collectors.toSet());
         var response = map(conta, titulares);
         gerarEvento(response);
@@ -67,7 +66,7 @@ class ContaController {
         LOGGER.debug("Deletar conta: {}", conta);
         var contaEntity = contaRepository.findById(conta)
                 .orElseThrow(() -> new ContaNotFoundException("Conta não encontrada!"));
-        contaEntity.setEstado("INATIVA");
+        contaEntity.estado = "INATIVA";
         contaRepository.save(contaEntity);
         var titulares = titularRepository.getAllByConta(conta);
         var response = map(contaEntity, titulares);
@@ -83,14 +82,14 @@ class ContaController {
     }
 
     private ContaResponse map(ContaEntity conta, Set<TitularEntity> titulares) {
-        return new ContaResponse(conta.getId(),
-                conta.getAgencia(),
-                "%d-%d".formatted(conta.getNumero(), conta.getDigitoVerificador()),
+        return new ContaResponse(conta.id,
+                conta.agencia,
+                "%d-%d".formatted(conta.numero, conta.digitoVerificador),
                 titulares.stream()
-                        .map(t -> new TitularResponse(t.getId(), t.getDocumento(), t.getNome()))
+                        .map(t -> new TitularResponse(t.id, t.documento, t.nome))
                         .collect(Collectors.toSet()),
-                conta.getEstado(),
-                conta.getDataCriacao());
+                conta.estado,
+                conta.dataCriacao);
     }
 
     record TitularRequest(String documento, String nome) {

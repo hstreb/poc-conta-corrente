@@ -1,11 +1,13 @@
-package org.exemplo.contas;
+package org.exemplo.transacoes.transacao;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.TopicPartition;
-import org.exemplo.contas.ContaController.ContaRequest;
-import org.exemplo.contas.ContaController.TitularRequest;
+import org.exemplo.transacoes.conta.ContaEntity;
+import org.exemplo.transacoes.conta.ContaRepository;
+import org.exemplo.transacoes.transacao.TransacaoController.TransacaoRequest;
+import org.exemplo.transacoes.transacao.TransacaoController.TransacaoResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,25 +21,23 @@ import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.util.concurrent.SuccessCallback;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static java.math.BigDecimal.TEN;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.exemplo.transacoes.transacao.TipoTransacaoEnum.CREDITO;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
-class ContaControllerTest {
+class TransacaoControllerTest {
 
-    private static final UUID CONTA_ID = UUID.randomUUID();
-    private static final UUID TITULAR_ID = UUID.randomUUID();
-    private static final LocalDateTime NOW = LocalDateTime.now();
     private static final ListenableFuture<SendResult<String, String>> LISTENABLE_FUTURE = new ListenableFuture<>() {
         @Override
         public void addCallback(ListenableFutureCallback<? super SendResult<String, String>> callback) {
@@ -70,7 +70,7 @@ class ContaControllerTest {
         @Override
         public SendResult<String, String> get(long timeout, TimeUnit unit) {
             return new SendResult<>(new ProducerRecord<>("", ""),
-                    new RecordMetadata(new TopicPartition("contas", 0),
+                    new RecordMetadata(new TopicPartition("transacoes", 0),
                             0L,
                             0,
                             0L,
@@ -78,22 +78,12 @@ class ContaControllerTest {
                             100));
         }
     };
-    private static final String DOCUMENTO = "1122";
-    private static final String NOME = "João";
-    private static final String AGENCIA = "0001";
-    private static final int NUMERO = 1234;
-    private static final String ESTADO = "ATIVA";
-    private static final ContaController.ContaResponse EXPERADO = new ContaController.ContaResponse(CONTA_ID,
-            AGENCIA,
-            "1234-4",
-            Set.of(new ContaController.TitularResponse(TITULAR_ID, DOCUMENTO, NOME)),
-            ESTADO,
-            NOW);
+    private static final LocalDateTime NOW = LocalDateTime.now();
 
     @Mock
     private ContaRepository contaRepository;
     @Mock
-    private TitularRepository titularRepository;
+    private TransacaoRepository transacaoRepository;
     @Mock
     private KafkaTemplate<String, String> kafkaTemplate;
     @Spy
@@ -101,63 +91,61 @@ class ContaControllerTest {
             .findAndRegisterModules();
 
     @InjectMocks
-    private ContaController contaController;
+    private TransacaoController transacaoController;
 
     @Test
-    void deve_salvar_conta_corretamente() throws Exception {
-        given(contaRepository.getProximoNumeroConta())
-                .willReturn(NUMERO);
-        given(contaRepository.save(any()))
-                .willReturn(getContaEntity());
-        given(titularRepository.save(any()))
-                .willReturn(getTitularEntity());
-        given(kafkaTemplate.send(any(), any(), any()))
-                .willReturn(LISTENABLE_FUTURE);
-        var resultado = contaController.criar(new ContaRequest(Set.of(new TitularRequest(DOCUMENTO, NOME))));
-        assertThat(resultado, is(EXPERADO));
-    }
-
-    @Test
-    void deve_buscar_conta_corretamente() {
+    void deve_criar_uma_transacao_corretamente() throws Exception {
         given(contaRepository.findById(any()))
                 .willReturn(Optional.of(getContaEntity()));
-        given(titularRepository.getAllByConta(any()))
-                .willReturn(Set.of(getTitularEntity()));
-        var resultado = contaController.buscar(CONTA_ID);
-        assertThat(resultado, is(EXPERADO));
-    }
-
-    @Test
-    void nao_deve_encontrar_conta_inexistente() {
-        given(contaRepository.findById(any()))
-                .willReturn(Optional.empty());
-        assertThatThrownBy(() -> contaController.buscar(CONTA_ID))
-                .isInstanceOf(ContaNotFoundException.class);
-    }
-
-    @Test
-    void deve_deletar_conta_corretamente() {
-        given(contaRepository.findById(any()))
-                .willReturn(Optional.of(getContaEntity()));
-        given(titularRepository.getAllByConta(any()))
-                .willReturn(Set.of(getTitularEntity()));
-        given(contaRepository.save(any()))
-                .willReturn(getContaEntity());
+        given(transacaoRepository.save(any()))
+                .willReturn(getTransacaoEntity());
         given(kafkaTemplate.send(any(), any(), any()))
                 .willReturn(LISTENABLE_FUTURE);
-        assertThatCode(() -> contaController.deletar(CONTA_ID))
+        var resultado = transacaoController.criar(UUID.fromString("f29283b3-6e25-4400-8e6e-81224f97ebeb"),
+                new TransacaoRequest(LocalDate.of(2022, 1, 1), TEN, CREDITO, null, null));
+        assertThat(resultado, is(new TransacaoResponse(UUID.fromString("0d10b122-076b-43a3-89cc-1d6ecd77632f"),
+                UUID.fromString("f29283b3-6e25-4400-8e6e-81224f97ebeb"),
+                CREDITO,
+                LocalDate.of(2022, 1, 1),
+                TEN,
+                new TransacaoController.Participante(null, null, null),
+                null,
+                null,
+                NOW)));
+    }
+
+    @Test
+    void deve_estornar_uma_transacao_corretamente() throws Exception {
+        given(contaRepository.findById(any()))
+                .willReturn(Optional.of(getContaEntity()));
+        given(transacaoRepository.findById(any()))
+                .willReturn(Optional.of(getTransacaoEntity()));
+        given(transacaoRepository.save(any()))
+                .willReturn(getTransacaoEntity());
+        given(kafkaTemplate.send(any(), any(), any()))
+                .willReturn(LISTENABLE_FUTURE);
+        assertThatCode(() -> transacaoController.deletar(UUID.fromString("f29283b3-6e25-4400-8e6e-81224f97ebeb"),
+                UUID.fromString("0d10b122-076b-43a3-89cc-1d6ecd77632f")))
                 .doesNotThrowAnyException();
     }
 
     ContaEntity getContaEntity() {
-        var entity = new ContaEntity(AGENCIA, NUMERO, ESTADO, 4, NOW);
-        entity.id = CONTA_ID;
-        return entity;
+        return new ContaEntity(UUID.fromString("f29283b3-6e25-4400-8e6e-81224f97ebeb"),
+                "0001",
+                "1234-5",
+                "ATIVA",
+                NOW);
     }
 
-    TitularEntity getTitularEntity() {
-        var entity = new TitularEntity(CONTA_ID, DOCUMENTO, NOME);
-        entity.id = TITULAR_ID;
+    TransacaoEntity getTransacaoEntity() {
+        var entity = new TransacaoEntity();
+        entity.id = UUID.fromString("0d10b122-076b-43a3-89cc-1d6ecd77632f");
+        entity.versao = 0L;
+        entity.conta = UUID.fromString("f29283b3-6e25-4400-8e6e-81224f97ebeb");
+        entity.tipoTransacao = CREDITO.id;
+        entity.dataTransacao = LocalDate.of(2022, 1, 1);
+        entity.valor = TEN;
+        entity.dataCriacao = NOW;
         return entity;
     }
 }

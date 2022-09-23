@@ -19,6 +19,8 @@ spring:
         request.timeout.ms: 5000
         delivery.timeout.ms: 10500
         max.block.ms: 5000
+  jackson:
+    default-property-inclusion: non_null
 management:
   metrics:
     tags:

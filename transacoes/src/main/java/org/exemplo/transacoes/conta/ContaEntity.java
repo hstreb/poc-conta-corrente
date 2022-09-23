@@ -1,21 +1,23 @@
 package org.exemplo.transacoes.conta;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
+import org.springframework.data.relational.core.mapping.Table;
+
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
-@Entity
 @Table(name = "conta")
-class ContaEntity {
+public class ContaEntity {
     @Id
-    private UUID id;
-    private String agencia;
-    private String conta;
-    private String estado;
-    private LocalDateTime dataCriacao;
+    UUID id;
+    @Version
+    Long versao;
+    String agencia;
+    String conta;
+    String estado;
+    LocalDateTime dataCriacao;
 
     public ContaEntity() {
     }
@@ -25,46 +27,6 @@ class ContaEntity {
         this.agencia = agencia;
         this.conta = conta;
         this.estado = estado;
-        this.dataCriacao = dataCriacao;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public String getAgencia() {
-        return agencia;
-    }
-
-    public void setAgencia(String agencia) {
-        this.agencia = agencia;
-    }
-
-    public String getConta() {
-        return conta;
-    }
-
-    public void setConta(String conta) {
-        this.conta = conta;
-    }
-
-    public String getEstado() {
-        return estado;
-    }
-
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
-
-    public LocalDateTime getDataCriacao() {
-        return dataCriacao;
-    }
-
-    public void setDataCriacao(LocalDateTime dataCriacao) {
         this.dataCriacao = dataCriacao;
     }
 
