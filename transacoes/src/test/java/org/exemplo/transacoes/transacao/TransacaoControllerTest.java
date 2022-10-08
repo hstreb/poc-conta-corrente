@@ -7,6 +7,7 @@ import org.apache.kafka.common.TopicPartition;
 import org.exemplo.transacoes.conta.ContaEntity;
 import org.exemplo.transacoes.conta.ContaNotFoundException;
 import org.exemplo.transacoes.conta.ContaRepository;
+import org.exemplo.transacoes.limite.LimiteService;
 import org.exemplo.transacoes.transacao.TransacaoController.TransacaoRequest;
 import org.exemplo.transacoes.transacao.TransacaoController.TransacaoResponse;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.util.concurrent.FailureCallback;
@@ -88,6 +91,8 @@ class TransacaoControllerTest {
     @Mock
     private TransacaoRepository transacaoRepository;
     @Mock
+    private LimiteService limiteService;
+    @Mock
     private KafkaTemplate<String, String> kafkaTemplate;
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper()
@@ -103,13 +108,15 @@ class TransacaoControllerTest {
     void deve_criar_uma_transacao_corretamente() throws Exception {
         given(contaRepository.findById(any()))
                 .willReturn(Optional.of(getContaEntity()));
+        given(limiteService.validar(any(), any(), any()))
+                .willReturn(true);
         given(transacaoRepository.save(any()))
                 .willReturn(getTransacaoEntity());
         given(kafkaTemplate.send(any(), any(), any()))
                 .willReturn(LISTENABLE_FUTURE);
         var resultado = transacaoController.criar(UUID.fromString("f29283b3-6e25-4400-8e6e-81224f97ebeb"),
                 new TransacaoRequest(LocalDate.of(2022, 1, 1), TEN, CREDITO, null, null));
-        assertThat(resultado, is(new TransacaoResponse(UUID.fromString("0d10b122-076b-43a3-89cc-1d6ecd77632f"),
+        assertThat(resultado, is(ResponseEntity.ok(new TransacaoResponse(UUID.fromString("0d10b122-076b-43a3-89cc-1d6ecd77632f"),
                 UUID.fromString("f29283b3-6e25-4400-8e6e-81224f97ebeb"),
                 CREDITO,
                 LocalDate.of(2022, 1, 1),
@@ -117,7 +124,18 @@ class TransacaoControllerTest {
                 new TransacaoController.Participante(null, null, null),
                 null,
                 null,
-                NOW)));
+                NOW))));
+    }
+
+    @Test
+    void nao_deve_criar_uma_transacao_quando_excede_limite() throws Exception {
+        given(contaRepository.findById(any()))
+                .willReturn(Optional.of(getContaEntity()));
+        given(limiteService.validar(any(), any(), any()))
+                .willReturn(false);
+        var resultado = transacaoController.criar(UUID.fromString("f29283b3-6e25-4400-8e6e-81224f97ebeb"),
+                new TransacaoRequest(LocalDate.of(2022, 1, 1), TEN, CREDITO, null, null));
+        assertThat(resultado, is(new ResponseEntity<>(HttpStatus.BAD_REQUEST)));
     }
 
     @Test

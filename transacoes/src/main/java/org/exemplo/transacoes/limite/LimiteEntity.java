@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Version;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 import java.util.UUID;
 
 @Table(name = "limite")
@@ -15,7 +16,15 @@ public class LimiteEntity {
     private Integer versao;
     private BigDecimal saldo;
     private BigDecimal saldoDiario;
-    private BigDecimal saldoChequeEspecial;
+
+    public LimiteEntity() {
+    }
+
+    public LimiteEntity(UUID conta, BigDecimal saldo, BigDecimal saldoDiario) {
+        this.conta = conta;
+        this.saldo = saldo;
+        this.saldoDiario = saldoDiario;
+    }
 
     public UUID getConta() {
         return conta;
@@ -46,14 +55,22 @@ public class LimiteEntity {
     }
 
     public void setSaldoDiario(BigDecimal saldoDiario) {
-        this.saldoDiario = saldoDiario;
+        if (saldoDiario.compareTo(BigDecimal.valueOf(500)) <= 0)
+            this.saldoDiario = saldoDiario;
+        else
+            this.saldoDiario = BigDecimal.valueOf(500);
     }
 
-    public BigDecimal getSaldoChequeEspecial() {
-        return saldoChequeEspecial;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        LimiteEntity that = (LimiteEntity) o;
+        return Objects.equals(conta, that.conta) && Objects.equals(versao, that.versao) && Objects.equals(saldo, that.saldo) && Objects.equals(saldoDiario, that.saldoDiario);
     }
 
-    public void setSaldoChequeEspecial(BigDecimal saldoChequeEspecial) {
-        this.saldoChequeEspecial = saldoChequeEspecial;
+    @Override
+    public int hashCode() {
+        return Objects.hash(conta, versao, saldo, saldoDiario);
     }
 }

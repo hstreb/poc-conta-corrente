@@ -35,7 +35,6 @@ CREATE TABLE limite (
     versao INTEGER NOT NULL,
     saldo NUMERIC(10,2) NULL,
     saldo_diario NUMERIC(10,2) NULL,
-    saldo_cheque_especial NUMERIC(10,2) NULL,
     CONSTRAINT transacao_conta_fk FOREIGN KEY (conta) REFERENCES conta(id)
 );
 

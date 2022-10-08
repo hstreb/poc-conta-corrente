@@ -12,7 +12,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -113,7 +112,6 @@ class ContaConsumerTest {
         entity.setConta(UUID.fromString("6132176f-bed6-42ea-82d4-21631372da33"));
         entity.setSaldo(ZERO);
         entity.setSaldoDiario(ZERO);
-        entity.setSaldoChequeEspecial(new BigDecimal("1000.0"));
         return entity;
     }
 }
