@@ -65,3 +65,26 @@ services:
       - POSTGRES_USER=transacao
       - POSTGRES_PASSWORD=transacao123
       - POSTGRES_DB=transacao
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.38
+    network_mode: "host"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+
+  contas:
+    build: ./contas
+    network_mode: "host"
+    volumes:
+      - ./docker/agent/opentelemetry-javaagent.jar:/opt/opentelemetry/opentelemetry-javaagent.jar
+    environment:
+      - JAVA_TOOL_OPTIONS=-javaagent:/opt/opentelemetry/opentelemetry-javaagent.jar -Dotel.metrics.exporter=none -Dotel.exporter.jaeger.endpoint=http://localhost:4317 -Dotel.resource.attributes=service.name=contas
+
+  transacoes:
+    build: ./transacoes
+    network_mode: "host"
+    volumes:
+      - ./docker/agent/opentelemetry-javaagent.jar:/opt/opentelemetry/opentelemetry-javaagent.jar
+    environment:
+      - JAVA_TOOL_OPTIONS=-javaagent:/opt/opentelemetry/opentelemetry-javaagent.jar -Dotel.metrics.exporter=none -Dotel.exporter.jaeger.endpoint=http://localhost:4317 -Dotel.resource.attributes=service.name=transacoes
+  

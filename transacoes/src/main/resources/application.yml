@@ -37,3 +37,6 @@ management:
 logging:
   level:
     org.exemplo.transacoes: DEBUG
+
+  pattern:
+    level: '%5p [,%mdc{trace_id},%mdc{span_id},%mdc{trace_flags}]'
